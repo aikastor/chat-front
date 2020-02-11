@@ -13,10 +13,8 @@ const SendMessageForm = (props) => {
                        onChange={props.onChange}
                        value={props.author}
                        name='author'
-                       required
             />
-            <TextField required
-                       placeholder="Enter your message"
+            <TextField placeholder="Enter your message"
                        label="Message text"
                        multiline
                        variant='outlined'
