@@ -4,30 +4,31 @@ import {loadMessages, sendMessage} from "../../../store/actions";
 import {connect} from "react-redux";
 import MessageForm from "../../MessageForm/MessageForm";
 import Message from "../../Message/Message";
+import Alert from '@material-ui/lab/Alert';
+import Button from "@material-ui/core/Button";
+import Snackbar from "@material-ui/core/Snackbar";
+import SnackbarContent from "@material-ui/core/SnackbarContent";
 
 class Chat extends Component {
   state = {
     author: '',
     message: '',
+    error: false,
   };
-  lastMessageTime = null;
 
-  async getMessages () {
-    if (this.lastMessageTime) {
-      this.props.loadByDate(this.lastMessageTime)
-    } else {
-      this.props.loadMessages();
-      const messages = this.props.messages;
-      this.lastMessageTime = messages[messages.length - 1].datetime;
-    }
-  }
   componentDidMount() {
-    this.getMessages();
-    this.timer = setInterval(()=>this.getMessages(), 5000);
+    this.props.loadMessages();
+    this.timer = setInterval(()=>this.props.loadByDate(this.props.lastMsgDate), 5000);
   }
   componentWillUnmount() {
     clearInterval(this.timer);
     this.timer = null;
+  }
+
+  componentDidUpdate(prevProps, prevState, snapshot) {
+    if (prevProps.error !== this.props.error) {
+      this.setState({error: true})
+    }
   }
 
   handleChange = e => {
@@ -41,30 +42,40 @@ class Chat extends Component {
   render() {
     return (
         <Container maxWidth='md'>
-          {this.props.messages.map(message => {
-              let time = message.datetime;
-              return (
-                  <Message
-                      key={message.id}
-                      msgTxt={message.message}
-                      msgAuthor={message.author}
-                      time={time.substring(time.indexOf('T') + 1, time.indexOf('.'))}/>
-              )
-            })}
+
+          { this.props.messages.map(message => {
+            let time = message.datetime;
+            return (
+                <Message key={message.id}
+                         msgTxt={message.message}
+                         msgAuthor={message.author}
+                         time={time.substring(time.indexOf('T') + 1, time.indexOf('.'))}/>
+              )})
+          }
           <MessageForm
               onChange={this.handleChange}
               author={this.state.author}
               msg={this.state.message}
               onSubmit={e => this.sendMsg(e)}
           />
+          <Snackbar
+              open={this.state.error}
+              autoHideDuration={2000}
+              onClose={() => {this.setState({error: false})}}
+              anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+          >
+            <SnackbarContent style={{
+              backgroundColor:'red',
+            }} message={<span>{this.props.error}!</span>}
+            />
+          </Snackbar>
         </Container>
     );
   }
 }
 const mapStateToProps = state => ({
   messages: state.messages,
-  loadingMessages: state.loadingReceive,
-  loadingSend: state.loadingSend,
+  lastMsgDate: state.lastMsgDate,
   error: state.error,
 });
 const mapDispatchToProps = dispatch => ({

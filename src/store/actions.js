@@ -27,8 +27,8 @@ export const loadMessages = (date) => {
         const response = await axiosApi.get('/messages');
         dispatch(messagesSuccess(response.data))
       }
-    } catch (e) {
-      dispatch(messagesFailure(e))
+    } catch (error) {
+      dispatch(messagesFailure({error}));
     }
   }
 };
@@ -39,8 +39,8 @@ export const sendMessage = (msg) => {
       dispatch(sendMsgRequest());
       await axiosApi.post('/messages', msg);
       dispatch(sendMsgSuccess())
-    } catch (e) {
-      dispatch(sendMessageError(e))
+    } catch (error) {
+      dispatch(sendMessageError(error.response.data.error))
     }
   }
 };
